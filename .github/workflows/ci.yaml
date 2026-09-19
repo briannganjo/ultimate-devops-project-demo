@@ -83,7 +83,6 @@ jobs:
 
     
     updatek8s:
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         runs-on: ubuntu-latest
 
         needs: docker
@@ -105,9 +104,6 @@ jobs:
             git add kubernetes/productcatalog/deploy.yaml
             git commit -m "[CI]: Update product catalog image tag"
             git push
-
-
-            #update the image tag in the kubernetes deployment manifest and push the changes to the main branch
 
             
 
