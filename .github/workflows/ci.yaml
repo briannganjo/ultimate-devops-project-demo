@@ -6,7 +6,9 @@ on:
     pull_request:
         branches:
         - main
-
+    push:
+        branches:
+        - main      
 permissions:
     contents: write
 
@@ -87,22 +89,31 @@ jobs:
         needs: docker
 
         steps:
-        - name: checkout code
+        - name: Checkout main
           uses: actions/checkout@v4
           with:
+            ref: main
+            fetch-depth: 0
             token: ${{ secrets.GITHUB_TOKEN }}
 
         - name: Update tag in kubernetes deployment manifest
-          run: | 
-               sed -i "s|image: .*|image: ${{ secrets.DOCKER_USERNAME }}/product-catalog:${{github.run_id}}|" kubernetes/productcatalog/deploy.yaml
-        
+          run: |
+            sed -i "s|image: .*|image: ${{ secrets.DOCKER_USERNAME }}/product-catalog:${{ github.run_id }}|" kubernetes/productcatalog/deploy.yaml
+
         - name: Commit and push changes
           run: |
-            git config --global user.email "nganjo.brian@gmail.com"
-            git config --global user.name "Brian Nganjo"
+            git config user.email "nganjo.brian@gmail.com"
+            git config user.name "Brian Nganjo"
+
             git add kubernetes/productcatalog/deploy.yaml
+
+            if git diff --cached --quiet; then
+              echo "No manifest changes to commit"
+              exit 0
+            fi
+
             git commit -m "[CI]: Update product catalog image tag"
-            git push
+            git push origin HEAD:main
 
             
 
