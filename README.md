@@ -1,3 +1,73 @@
+A proof-of-concept DevOps pipeline built on top of the
+[OpenTelemetry Demo](https://github.com/open-telemetry/opentelemetry-demo) — a ~20-service
+microservices e-commerce application. This project demonstrates a full, production-representative
+path from infrastructure provisioning to automated, GitOps-based continuous delivery.
+
+## 🎥 Walkthrough
+
+## Architecture
+
+```
+Terraform ──▶ AWS VPC + EKS Cluster
+                    │
+                    ▼
+          Kubernetes (EKS) — ~20 microservices
+                    │
+     AWS Load Balancer Controller + Ingress
+                    │
+                    ▼
+              Application Load Balancer
+                    │
+                    ▼
+                 Route 53 DNS
+                    │
+                    ▼
+              Public Traffic
+
+  ── Delivery ──
+  GitHub Actions (CI)  →  build, test, lint, containerize, tag
+          │
+          ▼
+  Git repo (manifest updated with new image tag)
+          │
+          ▼
+  ArgoCD (CD)  →  detects drift, syncs cluster automatically
+```
+
+## Stack
+
+| Layer | Tool |
+|---|---|
+| Infrastructure as Code | Terraform |
+| Container Orchestration | Amazon EKS (Kubernetes) |
+| Ingress / Load Balancing | AWS Load Balancer Controller + ALB |
+| DNS | Route 53 |
+| CI | GitHub Actions |
+| CD | ArgoCD (GitOps) |
+| Registry | Docker Hub |
+
+## What this demonstrates
+
+- Reproducible, version-controlled infrastructure via Terraform
+- IAM Roles for Service Accounts (IRSA) via OIDC federation, enabling in-cluster controllers to
+  provision real AWS resources
+- Ingress-based traffic routing (one ALB, multiple services) rather than a load balancer per
+  service
+- A working CI pipeline (`.github/workflows/ci.yaml`) for the product catalog service — build,
+  test, lint, containerize, and push, gated appropriately between pull requests and merges to
+  `main`
+- GitOps-based deployment via ArgoCD — the cluster continuously reconciles to match the state
+  declared in Git, with no manual `kubectl apply` in the delivery path
+
+## Notes
+
+This is a personal learning project built to understand each layer of a typical DevOps pipeline
+end to end, not a maintained production system. Infrastructure is provisioned and torn down
+between sessions.
+
+
+
+
 **Note:** This project is a fork of `opentelemetry-demo`. Thanks to the team and contributors for opensourcing this wonderful demo project. Definitely one of the best on internet.
 
 <!-- markdownlint-disable-next-line -->
